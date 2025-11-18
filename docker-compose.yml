@@ -1,0 +1,38 @@
+services:
+
+  postgres_db:
+    image: postgres:17
+
+    container_name: inzynierka_database
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_APP_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+      TZ: Europe/Warsaw
+
+      POSTGRES_INITDB_ARGS: >
+        -c shared_buffers=512MB
+        -c work_mem=16MB
+        -c maintenance_work_mem=256MB
+        -c random_page_cost=1.1
+        -c effective_cache_size=2GB
+        -c log_statement=all
+        -c log_duration=on
+
+    ports:
+      - "5432:5432"
+    volumes:
+      - inzynierka_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  inzynierka_postgres_data:
