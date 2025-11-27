@@ -1,5 +1,7 @@
 package org.example.api.model;
 
+
+import io.hypersistence.tsid.TSID;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -8,17 +10,16 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "users")
-@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
     private Long id;
 
     @Email(message = "ERROR_EMAIL_INVALID")
     @NotBlank(message = "ERROR_EMAIL_REQUIRED")
     @Column(nullable = false, unique = true)
     private String email;
-
 
     @NotBlank(message = "ERROR_PASSWORD_REQUIRED")
     @Column(nullable = false)
@@ -48,8 +49,22 @@ public class User {
     private Role role;
 
     @Column(nullable = false)
-    @Builder.Default
-    private boolean isActive = true;
+    private boolean isActive;
+
+    public static User createUser(String email, String passwordHash, String firstName,
+                                  String lastName, String phoneNumber, Role role){
+        User user = new User();
+        user.id = TSID.fast().toLong();
+        user.email = email;
+        user.passwordHash = passwordHash;
+        user.firstName = firstName;
+        user.lastName = lastName;
+        user.phoneNumber = phoneNumber;
+        user.role = role;
+        user.isActive = true;
+
+        return user;
+    }
 
     @Override
     public boolean equals(Object obj) {
