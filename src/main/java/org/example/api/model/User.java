@@ -44,7 +44,9 @@ public class User {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof User user && Objects.equals(user.getId(), this.getId());
+        return obj instanceof User user &&
+                this.id != null &&
+                this.id.equals(user.id);
     }
 
     @Override

@@ -29,7 +29,8 @@ public class Client {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof Client client &&
-                Objects.equals(client.getId(), this.getId());
+                this.id != null &&
+                this.id.equals(client.id);
     }
 
     @Override
