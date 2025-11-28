@@ -1,7 +1,6 @@
 package org.example.api.model;
 
 
-import io.hypersistence.tsid.TSID;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -10,61 +9,38 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "users")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Getter
+@Setter
 public class User {
     @Id
-    @Getter
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Email(message = "ERROR_EMAIL_INVALID")
-    @NotBlank(message = "ERROR_EMAIL_REQUIRED")
     @Column(nullable = false, unique = true)
     private String email;
 
-    @NotBlank(message = "ERROR_PASSWORD_REQUIRED")
     @Column(nullable = false)
     private String passwordHash;
 
-    @NotBlank(message = "ERROR_FIRSTNAME_REQUIRED")
-    @Size(min = 2, max = 30, message = "ERROR_FIRSTNAME_INVALID")
     @Column(length = 30, nullable = false)
     private String firstName;
 
-    @NotBlank(message = "ERROR_LASTNAME_REQUIRED")
-    @Size(min = 2, max = 30, message = "ERROR_LASTNAME_INVALID")
     @Column(length = 30, nullable = false)
     private String lastName;
 
-    @NotBlank(message = "ERROR_PHONE_NUMBER_REQUIRED")
-    @Pattern(
-            regexp = "^\\d{9}$",
-            message = "ERROR_PHONE_NUMBER_INVALID"
-    )
     @Column(length = 9, nullable = false)
     private String phoneNumber;
 
-    @NotNull(message = "ERROR_ROLE_REQUIRED")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private Role role;
 
     @Column(nullable = false)
-    private boolean isActive;
-
-    public static User createUser(String email, String passwordHash, String firstName,
-                                  String lastName, String phoneNumber, Role role){
-        User user = new User();
-        user.id = TSID.fast().toLong();
-        user.email = email;
-        user.passwordHash = passwordHash;
-        user.firstName = firstName;
-        user.lastName = lastName;
-        user.phoneNumber = phoneNumber;
-        user.role = role;
-        user.isActive = true;
-
-        return user;
-    }
+    @Builder.Default
+    private boolean isActive = true;
 
     @Override
     public boolean equals(Object obj) {
