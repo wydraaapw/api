@@ -16,15 +16,12 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${frontend.account-activation-url}")
-    private String frontendAccountActivationUrl;
-
-    @Value("${frontend.reset-password-url}")
-    private String frontendResetPasswordUrl;
+    @Value("${frontend.application.url}")
+    private String frontendApplicationUrl;
 
     public void sendActivationEmail(String to, String firstName, String token) {
         String subject = "Potwierdzenie rejestracji w Restauracji";
-        String activationUrl = frontendAccountActivationUrl + "?token=" + token;
+        String activationUrl = frontendApplicationUrl + "/activate?token=" + token;
 
         String htmlContent = """
                 <html>
@@ -54,7 +51,7 @@ public class EmailService {
 
     public void sendPasswordResetEmail(String to, String token) {
         String subject = "Resetowanie hasła";
-        String resetUrl = frontendResetPasswordUrl + "?token=" + token;
+        String resetUrl = frontendApplicationUrl + "/reset-password?token=" + token;
 
         String htmlContent = """
                 <html>
