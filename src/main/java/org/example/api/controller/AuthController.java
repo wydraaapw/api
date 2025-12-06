@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -25,9 +27,9 @@ public class AuthController {
     }
 
     @GetMapping("/activate")
-    public ResponseEntity<String> activate(@RequestParam String token) {
+    public ResponseEntity<Map<String, String>> activate(@RequestParam String token) {
         authService.activateAccount(token);
-        return ResponseEntity.ok("Konto zostało aktywowane! Możesz się teraz zalogować.");
+        return ResponseEntity.ok(Map.of("message","Konto zostało aktywowane!"));
     }
 
     @PostMapping("/login")
