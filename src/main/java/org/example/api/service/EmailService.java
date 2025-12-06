@@ -5,6 +5,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.example.api.exception.ActivationMailException;
 import org.example.api.exception.ResetEmailException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -15,9 +16,15 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    @Value("${frontend.account-activation-url}")
+    private String frontendAccountActivationUrl;
+
+    @Value("${frontend.reset-password-url}")
+    private String frontendResetPasswordUrl;
+
     public void sendActivationEmail(String to, String firstName, String token) {
         String subject = "Potwierdzenie rejestracji w Restauracji";
-        String activationUrl = "http://localhost:3000/activate?token=" + token;
+        String activationUrl = frontendAccountActivationUrl + "?token=" + token;
 
         String htmlContent = """
                 <html>
@@ -47,7 +54,7 @@ public class EmailService {
 
     public void sendPasswordResetEmail(String to, String token) {
         String subject = "Resetowanie hasła";
-        String resetUrl = "http://localhost:3000/reset-password?token=" + token;
+        String resetUrl = frontendResetPasswordUrl + "?token=" + token;
 
         String htmlContent = """
                 <html>
