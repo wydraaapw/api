@@ -118,7 +118,7 @@ public class AuthService {
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MESSAGE));
 
         if (!passwordEncoder.matches(request.oldPassword(), user.getPasswordHash())) {
-            throw new ChangePasswordOldPasswordWrongException("Stare i nowe hasło muszą być identyczne");
+            throw new ChangePasswordOldPasswordWrongException("Niepoprawne stare hasło");
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
