@@ -42,7 +42,7 @@ public class AuthService {
             User user = existingUser.get();
 
             if (user.isActive()) {
-                throw new EmailAlreadyTakenException("ERR_EMAIL_TAKEN");
+                throw new EmailAlreadyTakenException("Email zajęty");
             } else {
                 regenerateActivationToken(user);
                 return;
@@ -73,10 +73,10 @@ public class AuthService {
     @Transactional
     public void activateAccount(String token) {
         ActivationToken activationToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new InvalidTokenException("ERR_INVALID_TOKEN"));
+                .orElseThrow(() -> new InvalidTokenException("Token aktywacyjny nie istnieje"));
 
         if (activationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new TokenExpiredException("ERR_TOKEN_EXPIRED");
+            throw new TokenExpiredException("Token stracił ważność");
         }
 
         User user = activationToken.getUser();
@@ -95,7 +95,7 @@ public class AuthService {
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MESSAGE));
 
         if (!user.isActive()) {
-            throw new InactiveAccountException("ERR_ACCOUNT_INACTIVE");
+            throw new InactiveAccountException("Konto nie zostało aktywowane");
         }
 
         Map<String, Object> extraClaims = Map.of("role", user.getRole().name(), "id", user.getId());
@@ -118,7 +118,7 @@ public class AuthService {
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MESSAGE));
 
         if (!passwordEncoder.matches(request.oldPassword(), user.getPasswordHash())) {
-            throw new ChangePasswordOldPasswordWrongException("ERR_OLD_PASSWORD_WRONG");
+            throw new ChangePasswordOldPasswordWrongException("Stare i nowe hasło muszą być identyczne");
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
@@ -145,10 +145,10 @@ public class AuthService {
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.token())
-                .orElseThrow(() -> new InvalidTokenException("ERR_INVALID_TOKEN"));
+                .orElseThrow(() -> new InvalidTokenException("Nieprawidłowy PasswordResetToken"));
 
         if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new TokenExpiredException("ERR_TOKEN_EXPIRED");
+            throw new TokenExpiredException("Token stracił ważność");
         }
 
         User user = resetToken.getUser();

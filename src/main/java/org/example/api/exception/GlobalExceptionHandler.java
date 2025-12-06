@@ -1,7 +1,7 @@
 package org.example.api.exception;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.validation.FieldError;
@@ -16,90 +16,77 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private static final String ERROR_FIELD = "error";
-    private static final String MESSAGE_FIELD = "message";
 
+    private ProblemDetail buildProblemDetail(HttpStatus status, String error, String detail, String title){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
+        problemDetail.setTitle(title);
+        problemDetail.setProperty(ERROR_FIELD, error);
+        return problemDetail;
+    }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Map<String, String>> handleBadCredentials(BadCredentialsException bce){
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of(ERROR_FIELD, "ERR_BAD_CREDENTIALS", MESSAGE_FIELD, "Incorrect email or password"));
+    public ProblemDetail handleBadCredentials(BadCredentialsException bce){
+        return buildProblemDetail(HttpStatus.UNAUTHORIZED, "ERR_BAD_CREDENTIALS", "Nieprawidłowy email lub hasło",
+                "Invalid credentials");
     }
 
     @ExceptionHandler(EmailAlreadyTakenException.class)
-    public ResponseEntity<Map<String, String>> handleEmailTaken(EmailAlreadyTakenException eate){
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of(ERROR_FIELD, "ERR_EMAIL_TAKEN", MESSAGE_FIELD, eate.getMessage()));
+    public ProblemDetail handleEmailTaken(EmailAlreadyTakenException eate){
+        return buildProblemDetail(HttpStatus.CONFLICT, "ERR_EMAIL_TAKEN", eate.getMessage(), "Email Taken");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
+        problemDetail.setTitle("Validation Error");
+        problemDetail.setProperty("errors", errors);
+        return problemDetail;
     }
 
     @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidToken(InvalidTokenException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of(ERROR_FIELD, ex.getMessage(), MESSAGE_FIELD, "Invalid token"));
+    public ProblemDetail handleInvalidToken(InvalidTokenException ex) {
+        return buildProblemDetail(HttpStatus.BAD_REQUEST, "ERR_INVALID_TOKEN", ex.getMessage(), "Invalid Token");
     }
 
     @ExceptionHandler(TokenExpiredException.class)
-    public ResponseEntity<Map<String, String>> handleTokenExpired(TokenExpiredException ex) {
-        return ResponseEntity
-                .status(HttpStatus.GONE)
-                .body(Map.of(ERROR_FIELD, ex.getMessage(), MESSAGE_FIELD, "Token has expired"));
+    public ProblemDetail handleTokenExpired(TokenExpiredException ex) {
+        return buildProblemDetail(HttpStatus.GONE, "ERR_TOKEN_EXPIRED", ex.getMessage(), "Token Expired");
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Map.of(ERROR_FIELD, ex.getMessage(), MESSAGE_FIELD, "User not found"));
+    public ProblemDetail handleUserNotFound(UserNotFoundException ex) {
+        return buildProblemDetail(HttpStatus.NOT_FOUND, "ERR_USER_NOT_FOUND", ex.getMessage(), "User Not Found");
     }
 
     @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<Map<String, String>> handleDisabledException(DisabledException ex) {
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(Map.of(ERROR_FIELD, "ERR_ACCOUNT_INACTIVE", MESSAGE_FIELD, "Account is not activated"));
+    public ProblemDetail handleDisabledException(DisabledException ex) {
+        return buildProblemDetail(HttpStatus.FORBIDDEN, "ERR_ACCOUNT_INACTIVE", ex.getMessage(), "Account Disabled");
     }
 
     @ExceptionHandler(InactiveAccountException.class)
-    public ResponseEntity<Map<String, String>> handleInactiveAccount(InactiveAccountException ex) {
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(Map.of(ERROR_FIELD, ex.getMessage(), MESSAGE_FIELD, "Account is not activated"));
+    public ProblemDetail handleInactiveAccount(InactiveAccountException ex) {
+        return buildProblemDetail(HttpStatus.FORBIDDEN, "ERR_ACCOUNT_INACTIVE", ex.getMessage(), "Account Inactive");
     }
 
     @ExceptionHandler(ChangePasswordOldPasswordWrongException.class)
-    public ResponseEntity<Map<String, String>> handleWrongOldPassword(ChangePasswordOldPasswordWrongException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of(ERROR_FIELD, ex.getMessage(), MESSAGE_FIELD, "Old password is incorrect"));
+    public ProblemDetail handleWrongOldPassword(ChangePasswordOldPasswordWrongException ex) {
+        return buildProblemDetail(HttpStatus.BAD_REQUEST, "ERR_CHANGE_PASSWORD", ex.getMessage(), "Invalid Password");
     }
 
     @ExceptionHandler(ActivationMailException.class)
-    public ResponseEntity<Map<String, String>> handleActivationMailError(ActivationMailException ex) {
-        return ResponseEntity
-                .status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(Map.of(ERROR_FIELD, ex.getMessage(), MESSAGE_FIELD, "Sending activation mail failed"));
+    public ProblemDetail handleActivationMailError(ActivationMailException ex) {
+        return buildProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "ERR_ACTIVATION_MAIL", ex.getMessage(), "Mail Service Error");
     }
 
     @ExceptionHandler(ResetEmailException.class)
-    public ResponseEntity<Map<String, String>> handleResetEmailError(ResetEmailException ex) {
-        return ResponseEntity
-                .status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(Map.of(ERROR_FIELD, ex.getMessage(), MESSAGE_FIELD, "Sending password reset mail failed"));
+    public ProblemDetail handleResetEmailError(ResetEmailException ex) {
+        return buildProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "ERR_RESET_EMAIL", ex.getMessage(), "Mail Service Error");
     }
-
-
-
 }
