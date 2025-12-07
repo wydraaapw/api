@@ -8,10 +8,13 @@ import org.example.api.exception.ResetEmailException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@EnableAsync
 public class EmailService {
 
     private final JavaMailSender mailSender;
@@ -19,6 +22,7 @@ public class EmailService {
     @Value("${frontend.application.url}")
     private String frontendApplicationUrl;
 
+    @Async
     public void sendActivationEmail(String to, String firstName, String token) {
         String subject = "Potwierdzenie rejestracji w Restauracji";
         String activationUrl = frontendApplicationUrl + "/activate?token=" + token;
@@ -48,7 +52,7 @@ public class EmailService {
         }
     }
 
-
+    @Async
     public void sendPasswordResetEmail(String to, String token) {
         String subject = "Resetowanie hasła";
         String resetUrl = frontendApplicationUrl + "/reset-password?token=" + token;
