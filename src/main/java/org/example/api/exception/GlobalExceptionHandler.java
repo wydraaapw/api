@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DisabledException.class)
     public ProblemDetail handleDisabledException(DisabledException ex) {
-        return buildProblemDetail(HttpStatus.FORBIDDEN, "ERR_ACCOUNT_INACTIVE", ex.getMessage(), "Account Disabled");
+        return buildProblemDetail(HttpStatus.FORBIDDEN, "ERR_ACCOUNT_INACTIVE", "Konto nieaktywne. Aktywuj konto klikając w link wysłany na adres email", "Account Disabled");
     }
 
     @ExceptionHandler(InactiveAccountException.class)
