@@ -58,19 +58,4 @@ public class AuthController {
         authService.resetPassword(request);
         return ResponseEntity.ok().build();
     }
-
-    @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
-        User user = userService.getUserByEmail(authentication.getName());
-
-        UserResponse response = new UserResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getRole().name()
-        );
-
-        return ResponseEntity.ok(response);
-    }
 }
