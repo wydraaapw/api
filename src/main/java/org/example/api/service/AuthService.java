@@ -44,7 +44,13 @@ public class AuthService {
             if (user.isActive()) {
                 throw new EmailAlreadyTakenException("Email zajęty");
             } else {
-                regenerateActivationToken(user);
+                user.setFirstName(request.firstName());
+                user.setLastName(request.lastName());
+                user.setPhoneNumber(request.phoneNumber());
+                user.setPasswordHash(passwordEncoder.encode(request.password()));
+
+                userRepository.save(user);
+                generateActivationToken(user);
                 return;
             }
         }
@@ -67,7 +73,7 @@ public class AuthService {
 
         clientRepository.save(client);
 
-        regenerateActivationToken(user);
+        generateActivationToken(user);
     }
 
     @Transactional
@@ -158,7 +164,7 @@ public class AuthService {
         passwordResetTokenRepository.delete(resetToken);
     }
 
-    private void regenerateActivationToken(User user) {
+    private void generateActivationToken(User user) {
         String token = UUID.randomUUID().toString();
 
         ActivationToken activationToken = tokenRepository.findByUser(user)
