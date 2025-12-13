@@ -89,4 +89,20 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleResetEmailError(ResetEmailException ex) {
         return buildProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "ERR_RESET_EMAIL", ex.getMessage(), "Mail Service Error");
     }
+
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ProblemDetail handleResourceAlreadyExists(ResourceAlreadyExistsException rae){
+        return buildProblemDetail(HttpStatus.CONFLICT, "ERR_RESOURCE_EXISTS", rae.getMessage(), "Resource Already Exists");
+    }
+
+    @ExceptionHandler(ResourceInUseException.class)
+    public ProblemDetail handleResourceInUse(ResourceInUseException riue){
+        return buildProblemDetail(HttpStatus.CONFLICT, "ERR_RESOURCE_IN_USE", riue.getMessage(), "Resource in use");
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex) {
+        return buildProblemDetail(HttpStatus.NOT_FOUND, "ERR_RESOURCE_NOT_FOUND", ex.getMessage(), "Resource Not Found");
+    }
+
 }
