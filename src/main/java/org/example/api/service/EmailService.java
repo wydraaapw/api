@@ -44,7 +44,7 @@ public class EmailService {
             
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(htmlContent, true); // true = html
+            helper.setText(htmlContent, true);
             
             mailSender.send(message);
         } catch (MessagingException e) {

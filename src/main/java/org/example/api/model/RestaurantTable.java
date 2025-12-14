@@ -15,10 +15,15 @@ public class RestaurantTable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private TableType tableType = TableType.TABLE;
+
+    @Column(unique = true)
     private Integer tableNumber;
 
-    @Column(nullable = false)
+    @Column
     private Integer seats;
 
     @Column(nullable = false)
