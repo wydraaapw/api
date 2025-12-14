@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.api.dto.WaiterRequest;
 import org.example.api.dto.WaiterResponse;
-import org.example.api.model.Waiter;
 import org.example.api.service.WaiterService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
