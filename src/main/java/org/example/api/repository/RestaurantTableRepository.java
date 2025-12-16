@@ -5,4 +5,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RestaurantTableRepository extends JpaRepository<org.example.api.model.RestaurantTable, Long> {
+    boolean existsRestaurantTableByTableNumber(Integer id);
 }

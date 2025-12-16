@@ -35,7 +35,7 @@ public class WaiterService {
     public WaiterResponse create(WaiterRequest waiterRequest){
 
         if (userRepository.existsByEmail(waiterRequest.email())){
-            throw new EmailAlreadyTakenException("Kelner z takim adresem e-mail już istnieje.");
+            throw new EmailAlreadyTakenException("Konto z takim adresem e-mail już istnieje.");
         }
 
         User user = User.builder()

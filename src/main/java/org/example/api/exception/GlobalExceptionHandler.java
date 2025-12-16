@@ -104,4 +104,14 @@ public class GlobalExceptionHandler {
         return buildProblemDetail(HttpStatus.NOT_FOUND, "ERR_RESOURCE_NOT_FOUND", ex.getMessage(), "Resource Not Found");
     }
 
+
+    @ExceptionHandler(ReservationDateFromPastException.class)
+    public ProblemDetail handle(ReservationDateFromPastException ex) {
+        return buildProblemDetail(HttpStatus.CONFLICT, "ERR_RESERVATION_DATE_PAST", ex.getMessage(), "Reservation Date From Past");
+    }
+
+    @ExceptionHandler(TableNumberNotUniqueException.class)
+    public ProblemDetail handle(TableNumberNotUniqueException ex) {
+        return buildProblemDetail(HttpStatus.CONFLICT, "ERR_TABLE_NUMBER_NOT_UNIQUE", ex.getMessage(), "Table Number Not UNique");
+    }
 }
