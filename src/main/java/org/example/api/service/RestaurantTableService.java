@@ -1,6 +1,5 @@
 package org.example.api.service;
 
-import jakarta.persistence.Table;
 import lombok.RequiredArgsConstructor;
 import org.example.api.dto.RestaurantTableResponse;
 import org.example.api.exception.ResourceAlreadyExistsException;
