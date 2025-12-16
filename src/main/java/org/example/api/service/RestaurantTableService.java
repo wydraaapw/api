@@ -54,7 +54,7 @@ public class RestaurantTableService {
 
         if (reservationRepository.existsByRestaurantTableIdAndStatusIn(
                 id,
-                Set.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED, ReservationStatus.IN_PROGRESS))
+                Set.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED))
         )
         {
             throw new ResourceInUseException("Nie można usunąć stolika, który posiada aktywne rezerwacje");

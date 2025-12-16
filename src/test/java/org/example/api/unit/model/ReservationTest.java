@@ -88,15 +88,6 @@ class ReservationTest {
         }
 
         @Test
-        @DisplayName("Should set IN_PROGRESS status")
-        void shouldSetInProgressStatus() {
-            Reservation reservation = Reservation.builder()
-                    .status(ReservationStatus.IN_PROGRESS)
-                    .build();
-            assertEquals(ReservationStatus.IN_PROGRESS, reservation.getStatus());
-        }
-
-        @Test
         @DisplayName("Should set COMPLETED status")
         void shouldSetCompletedStatus() {
             Reservation reservation = Reservation.builder()
