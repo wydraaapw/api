@@ -74,4 +74,11 @@ public class ReservationController {
         return ResponseEntity.ok().build();
     }
 
+
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<List<ReservationResponse>> getClientReservations(Authentication authentication) {
+        return ResponseEntity.ok(reservationService.findClientReservations(authentication.getName()));
+    }
+
 }

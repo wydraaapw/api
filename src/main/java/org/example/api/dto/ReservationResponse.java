@@ -16,5 +16,6 @@ public record ReservationResponse(
     LocalDateTime end,
     ReservationStatus status,
     Long waiterId,
-    String waiterName
+    String waiterName,
+    List<ReservationDishResponse> dishes
 ) {}

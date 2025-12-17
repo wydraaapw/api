@@ -171,6 +171,17 @@ public class ReservationService {
         reservationRepository.save(reservation);
     }
 
+    public List<ReservationResponse> findClientReservations(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Nie znaleziono użytkownika"));
+
+        return reservationRepository.findAllByClientId(user.getId())
+                .stream()
+                .sorted((r1, r2) -> r2.getId().compareTo(r1.getId()))
+                .map(this::mapToResponse)
+                .toList();
+    }
+
 
     private ReservationResponse mapToResponse(Reservation r) {
         LocalDateTime start = r.getReservationPeriod().lower();
@@ -181,6 +192,15 @@ public class ReservationService {
                 : "Nie przypisano";
 
         Long waiterId = (r.getWaiter() != null) ? r.getWaiter().getId() : null;
+
+        List<ReservationDishResponse> dishesResponse = r.getReservationDishes().stream()
+                .map(d -> new ReservationDishResponse(
+                        d.getId(),
+                        d.getDish().getName(),
+                        d.getQuantity(),
+                        d.isServed()
+                ))
+                .toList();
 
         return new ReservationResponse(
                 r.getId(),
@@ -194,7 +214,8 @@ public class ReservationService {
                 end,
                 r.getStatus(),
                 waiterId,
-                waiterName
+                waiterName,
+                dishesResponse
         );
     }
 }
