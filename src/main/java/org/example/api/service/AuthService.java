@@ -44,6 +44,10 @@ public class AuthService {
             if (user.isActive()) {
                 throw new EmailAlreadyTakenException("Email zajęty");
             } else {
+                if (user.getRole() == Role.ROLE_WAITER || user.getRole() == Role.ROLE_ADMIN) {
+                    throw new EmailAlreadyTakenException("Konto pracownicze dezaktywowane. Brak możliwości ponownej rejestracji.");
+                }
+
                 user.setFirstName(request.firstName());
                 user.setLastName(request.lastName());
                 user.setPhoneNumber(request.phoneNumber());

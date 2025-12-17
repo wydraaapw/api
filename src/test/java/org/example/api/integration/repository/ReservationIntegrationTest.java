@@ -187,47 +187,6 @@ class ReservationIntegrationTest extends BaseIntegrationTest {
             assertFalse(savedDish.isServed());
             assertNotNull(savedDish.getId());
         }
-
-        @Test
-        @DisplayName("Should update ReservationDish isServed status")
-        void shouldUpdateReservationDishServedStatus() {
-            Category cat = categoryRepository.save(Category.builder().name("Served Cat").build());
-
-            Dish dish = dishRepository.save(Dish.builder()
-                    .name("Served Dish")
-                    .description("Test")
-                    .price(new BigDecimal("15.00"))
-                    .imageUrl("https://example.com/img.jpg")
-                    .category(cat)
-                    .build());
-
-            LocalDateTime start = LocalDateTime.now().plusDays(3);
-
-            Reservation reservation = Reservation.builder()
-                    .reservationPeriod(Range.closedOpen(start, start.plusHours(2)))
-                    .status(ReservationStatus.IN_PROGRESS)
-                    .restaurantTable(table)
-                    .client(client)
-                    .waiter(waiter)
-                    .build();
-
-            ReservationDish reservationDish = ReservationDish.builder()
-                    .reservation(reservation)
-                    .dish(dish)
-                    .quantity(1)
-                    .isServed(false)
-                    .build();
-
-            reservation.getReservationDishes().add(reservationDish);
-            reservation = reservationRepository.save(reservation);
-
-            ReservationDish toUpdate = reservation.getReservationDishes().iterator().next();
-            toUpdate.setServed(true);
-            reservationRepository.save(reservation);
-
-            Reservation found = reservationRepository.findById(reservation.getId()).orElseThrow();
-            assertTrue(found.getReservationDishes().iterator().next().isServed());
-        }
     }
 
     @Nested

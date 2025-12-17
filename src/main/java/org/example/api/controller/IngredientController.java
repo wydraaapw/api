@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/admin/ingredients")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminIngredientController {
+public class IngredientController {
 
     private final IngredientService ingredientService;
 

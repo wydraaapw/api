@@ -22,4 +22,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findAllByClientId(Long clientId);
 
     boolean existsByRestaurantTableIdAndStatusIn(Long tableId, Set<ReservationStatus> statuses);
+
+    @Query(value = """
+        SELECT r.* FROM reservations r
+        WHERE r.status = 'CONFIRMED'
+        AND upper(r.reservation_period) < ?1
+    """, nativeQuery = true)
+    List<Reservation> findExpiredReservations(LocalDateTime threshold);
+
+    boolean existsByWaiterIdAndStatusIn(Long waiterId, Set<ReservationStatus> statuses);
 }
