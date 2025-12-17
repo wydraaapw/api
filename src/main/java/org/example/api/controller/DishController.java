@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/admin/dishes")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminDishController {
+public class DishController {
     private final DishService dishService;
 
     @GetMapping

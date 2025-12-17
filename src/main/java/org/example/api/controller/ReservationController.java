@@ -3,6 +3,9 @@ package org.example.api.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.api.dto.ReservationRequest;
+import org.example.api.dto.ReservationResponse;
+import org.example.api.dto.WaiterResponse;
+import org.example.api.model.ReservationStatus;
 import org.example.api.service.ReservationService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -38,4 +41,37 @@ public class ReservationController {
         reservationService.createReservation(authentication.getName(), request);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAITER')")
+    public ResponseEntity<List<ReservationResponse>> getAllReservations() {
+        return ResponseEntity.ok(reservationService.findAll());
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAITER', 'CLIENT')")
+    public ResponseEntity<Void> updateStatus(
+            @PathVariable Long id,
+            @RequestParam ReservationStatus status
+    ) {
+        reservationService.updateStatus(id, status);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/available-waiters")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<WaiterResponse>> getAvailableWaiters(@PathVariable Long id) {
+        return ResponseEntity.ok(reservationService.getAvailableWaitersForReservation(id));
+    }
+
+    @PatchMapping("/{id}/assign-waiter")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> assignWaiter(
+            @PathVariable Long id,
+            @RequestParam Long waiterId
+    ) {
+        reservationService.assignWaiter(id, waiterId);
+        return ResponseEntity.ok().build();
+    }
+
 }

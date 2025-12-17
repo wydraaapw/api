@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/menu")
-public class ClientMenuController {
+public class MenuController {
     private final DishService dishService;
 
     @GetMapping

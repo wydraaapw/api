@@ -21,4 +21,11 @@ public interface WorkShiftRepository extends JpaRepository<WorkShift, Long> {
         WHERE ws.shift_period @> tsrange(?1, ?2)
     """, nativeQuery = true)
     List<WorkShift> findShiftsCoveringPeriod(LocalDateTime start, LocalDateTime end);
+
+    @Query(value = """
+        SELECT COUNT(*) > 0 FROM work_shifts
+        WHERE waiter_id = ?1
+        AND upper(shift_period) > ?2
+    """, nativeQuery = true)
+    boolean existsFutureShifts(Long waiterId, LocalDateTime now);
 }

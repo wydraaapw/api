@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/admin/shifts")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminWorkShiftController {
+public class WorkShiftController {
 
     private final WorkShiftService workShiftService;
 

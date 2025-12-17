@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/api/admin/waiters")
-public class AdminWaiterController {
+public class WaiterController {
 
     private final WaiterService waiterService;
     @GetMapping
