@@ -18,7 +18,6 @@ public class MenuController {
     private final DishService dishService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('CLIENT', 'WAITER', 'ADMIN')")
     public ResponseEntity<List<DishResponse>> getMenu() {
         return ResponseEntity.ok(dishService.findAll());
     }
