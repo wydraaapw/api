@@ -32,6 +32,10 @@ public class RestaurantTable {
     @Column(nullable = false)
     private Integer columnPosition;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean isActive = true;
+
     @Override
     public boolean equals(Object obj) {
         return obj instanceof RestaurantTable restaurantTable &&
