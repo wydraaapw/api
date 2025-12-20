@@ -20,7 +20,6 @@ public class RestaurantTable {
     @Builder.Default
     private TableType tableType = TableType.TABLE;
 
-    @Column(unique = true)
     private Integer tableNumber;
 
     @Column

@@ -16,13 +16,13 @@ import java.util.List;
 @RequestMapping("/api/admin/tables")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class TableController {
+public class RestaurantTableController {
 
     private final RestaurantTableService tableService;
 
     @GetMapping
-    public ResponseEntity<List<RestaurantTableResponse>> getAll() {
-        return ResponseEntity.ok(tableService.findAll());
+    public ResponseEntity<List<RestaurantTableResponse>> getAllActive() {
+        return ResponseEntity.ok(tableService.findAllByIsActive(true));
     }
 
     @PostMapping
