@@ -13,10 +13,8 @@ import org.example.api.repository.OpinionRepository;
 import org.example.api.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,15 +23,19 @@ public class OpinionService {
     private final ClientRepository clientRepository;
     private final UserRepository userRepository;
 
-    public void createOpinion(OpinionRequest opinionRequest){
-        Client client = clientRepository.findById(opinionRequest.clientId())
-                .orElseThrow(() -> new UserNotFoundException("Klient o id: " + opinionRequest.clientId() + " nie istnieje"));
+    public void createOpinion(OpinionRequest opinionRequest, String email){
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Nie znaleziono użytkownika"));
+
+        Client client = clientRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new UserNotFoundException("Użytkownik nie jest klientem"));
 
         Opinion opinion = Opinion.builder()
                 .content(opinionRequest.content())
+                .rating(opinionRequest.rating())
                 .createdAt(opinionRequest.createdAt())
                 .client(client)
-                .rating(opinionRequest.rating())
                 .build();
 
         opinionRepository.save(opinion);

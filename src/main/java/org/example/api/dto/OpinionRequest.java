@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 public record OpinionRequest(
         @NotNull @Size(max = 500) String content,
         @NotNull LocalDateTime createdAt,
-        @NotNull Long clientId,
         @Min(1) @Max(5) Integer rating
         )
 {}

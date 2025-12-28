@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,8 +23,8 @@ public class OpinionController {
 
     @PostMapping
     @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<Void> addOpinion(@Valid @RequestBody OpinionRequest opinionRequest){
-        opinionService.createOpinion(opinionRequest);
+    public ResponseEntity<Void> addOpinion(@Valid @RequestBody OpinionRequest opinionRequest, Authentication authentication){
+        opinionService.createOpinion(opinionRequest, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
