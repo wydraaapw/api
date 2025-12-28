@@ -1,6 +1,8 @@
 package org.example.api.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -25,6 +27,11 @@ public class Opinion {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
+
+    @Column(nullable = false)
+    @Min(value = 1, message = "Ocena musi wynosić minimum 1")
+    @Max(value = 5, message = "Ocena może wynosić maksimum 5")
+    private Integer rating;
 
     @Override
     public boolean equals(Object obj) {
