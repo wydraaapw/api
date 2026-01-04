@@ -11,14 +11,13 @@ import org.example.api.model.*;
 import org.example.api.repository.*;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
-
-import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -113,6 +112,10 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
                 () -> new ResourceNotFoundException("Rezerwacja z id " + reservationId + " nie istnieje."));
 
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new IllegalStateException("Nie można edytować anulowanej rezerwacji.");
+        }
+
         reservation.setStatus(newStatus);
         reservationRepository.save(reservation);
     }
@@ -127,9 +130,9 @@ public class ReservationService {
     @Transactional
     @Scheduled(cron = "0 */5 * * * *")
     public void autoCompleteReservations() {
-        LocalDateTime treshold = LocalDateTime.now().minusMinutes(10);
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(10);
 
-        List<Reservation> expired = reservationRepository.findExpiredReservations(treshold);
+        List<Reservation> expired = reservationRepository.findExpiredReservations(threshold);
 
         for (Reservation reservation : expired) {
             reservation.setStatus(ReservationStatus.COMPLETED);
@@ -138,6 +141,16 @@ public class ReservationService {
         if (!expired.isEmpty()) {
             reservationRepository.saveAll(expired);
         }
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 */5 * * * *")
+    public void autoCancelNotConfirmedReservations(){
+        List<Reservation> reservations = reservationRepository.findNotConfirmedReservations(LocalDateTime.now());
+
+        reservations.forEach(reservation -> reservation.setStatus(ReservationStatus.CANCELLED));
+
+        reservationRepository.saveAll(reservations);
     }
 
     public List<WaiterResponse> getAvailableWaitersForReservation(Long reservationId) {
@@ -180,6 +193,24 @@ public class ReservationService {
                 .sorted((r1, r2) -> r2.getId().compareTo(r1.getId()))
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void cancelReservation(Long id, String userEmail){
+        Reservation reservation = reservationRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Rezerwacja o podanym id nie istnieje")
+        );
+
+        if (!reservation.getClient().getUser().getEmail().equals(userEmail)) {
+            throw new AccessDeniedException("Nie masz uprawnień do anulowania tej rezerwacji.");
+        }
+
+        if (reservation.getStatus() == ReservationStatus.PENDING || reservation.getStatus() == ReservationStatus.CONFIRMED) {
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservationRepository.save(reservation);
+        } else {
+            throw new IllegalStateException("Nie można anulować rezerwacji o statusie: " + reservation.getStatus());
+        }
     }
 
 
