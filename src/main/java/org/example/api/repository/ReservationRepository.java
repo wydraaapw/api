@@ -5,7 +5,6 @@ import org.example.api.model.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -31,4 +30,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findExpiredReservations(LocalDateTime threshold);
 
     boolean existsByWaiterIdAndStatusIn(Long waiterId, Set<ReservationStatus> statuses);
+
+    @Query(value = """
+     SELECT r.* FROM reservations r
+     WHERE r.status = 'PENDING'
+     AND lower(r.reservation_period) < ?1
+     """, nativeQuery = true)
+    List<Reservation> findNotConfirmedReservations(LocalDateTime threshold);
 }

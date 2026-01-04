@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.api.dto.ReservationRequest;
 import org.example.api.dto.ReservationResponse;
 import org.example.api.dto.WaiterResponse;
+import org.example.api.model.Reservation;
 import org.example.api.model.ReservationStatus;
 import org.example.api.service.ReservationService;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -79,6 +80,13 @@ public class ReservationController {
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<List<ReservationResponse>> getClientReservations(Authentication authentication) {
         return ResponseEntity.ok(reservationService.findClientReservations(authentication.getName()));
+    }
+
+    @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<Void> cancelReservation(@PathVariable Long id, Authentication authentication){
+        reservationService.cancelReservation(id, authentication.getName());
+        return ResponseEntity.noContent().build();
     }
 
 }
