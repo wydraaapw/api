@@ -8,6 +8,7 @@ import java.util.List;
 
 @Repository
 public interface DishRepository extends JpaRepository<Dish, Long> {
+    List<Dish> findAllByIsActiveTrue();
     List<Dish> findByCategoryId(Long categoryId);
     boolean existsByCategoryId(Long categoryId);
     boolean existsByIngredientsId(Long ingredientId);

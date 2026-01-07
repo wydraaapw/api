@@ -13,12 +13,14 @@ import java.util.Set;
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     @Query(value = """
         SELECT r.* FROM reservations r
-        WHERE r.status IN ('PENDING', 'CONFIRMED', 'IN_PROGRESS')
+        WHERE r.status IN ('PENDING', 'CONFIRMED')
         AND r.reservation_period && tsrange(?1, ?2)
     """, nativeQuery = true)
     List<Reservation> findOverlappingReservations(LocalDateTime start, LocalDateTime end);
 
     List<Reservation> findAllByClientId(Long clientId);
+
+    List<Reservation> findAllByWaiterId(Long waiterId);
 
     boolean existsByRestaurantTableIdAndStatusIn(Long tableId, Set<ReservationStatus> statuses);
 
