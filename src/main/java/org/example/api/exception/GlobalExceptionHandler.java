@@ -105,8 +105,8 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(ReservationDateFromPastException.class)
-    public ProblemDetail handle(ReservationDateFromPastException ex) {
+    @ExceptionHandler(IncorrectReservationDateException.class)
+    public ProblemDetail handle(IncorrectReservationDateException ex) {
         return buildProblemDetail(HttpStatus.CONFLICT, "ERR_RESERVATION_DATE_PAST", ex.getMessage(), "Reservation Date From Past");
     }
 

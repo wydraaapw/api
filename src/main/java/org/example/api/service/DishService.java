@@ -26,7 +26,7 @@ public class DishService {
     private final IngredientRepository ingredientRepository;
 
     public List<DishResponse> findAll() {
-        return dishRepository.findAll().stream()
+        return dishRepository.findAllByIsActiveTrue().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
@@ -56,7 +56,11 @@ public class DishService {
 
     @Transactional
     public void delete(Long id) {
-        dishRepository.deleteById(id);
+        Dish dish = dishRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Danie nie istnieje"));
+
+        dish.setActive(false);
+        dishRepository.save(dish);
     }
 
     private DishResponse mapToResponse(Dish dish) {

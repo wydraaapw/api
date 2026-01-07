@@ -35,6 +35,10 @@ public class Dish {
     private Category category;
 
     @Builder.Default
+    @Column(nullable = false)
+    private boolean isActive = true;
+
+    @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "dish_ingredients",
                joinColumns = @JoinColumn(name = "dish_id"),

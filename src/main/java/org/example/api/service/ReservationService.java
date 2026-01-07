@@ -3,7 +3,7 @@ package org.example.api.service;
 import io.hypersistence.utils.hibernate.type.range.Range;
 import lombok.RequiredArgsConstructor;
 import org.example.api.dto.*;
-import org.example.api.exception.ReservationDateFromPastException;
+import org.example.api.exception.IncorrectReservationDateException;
 import org.example.api.exception.ResourceAlreadyExistsException;
 import org.example.api.exception.ResourceNotFoundException;
 import org.example.api.exception.UserNotFoundException;
@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 @Service
@@ -32,6 +34,8 @@ public class ReservationService {
     private final WaiterRepository waiterRepository;
 
     private static final Random random = new Random();
+    private static final LocalTime LAST_ALLOWED_START_TIME = LocalTime.of(19, 0);
+    private static final LocalTime CLOSING_TIME = LocalTime.of(22, 0);
 
     public List<Long> getOccupiedTableIds(LocalDateTime start, LocalDateTime end) {
         return reservationRepository.findOverlappingReservations(start, end)
@@ -47,6 +51,19 @@ public class ReservationService {
             throw new IllegalArgumentException("Data rozpoczęcia musi być przed datą zakończenia.");
         }
 
+        if (request.start().isBefore(LocalDateTime.now())) {
+            throw new IncorrectReservationDateException("Wybrano datę rezerwacji z przeszłości.");
+        }
+
+        LocalTime startTime = request.start().toLocalTime();
+        LocalTime endTime = request.end().toLocalTime();
+
+        if (startTime.isAfter(LAST_ALLOWED_START_TIME) || endTime.isAfter(CLOSING_TIME)) {
+            throw new IncorrectReservationDateException(
+                    "Rezerwacja możliwa najpóźniej na 19:00 i musi zakończyć się do 22:00."
+            );
+        }
+
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("Użytkownik nie istnieje."));
 
@@ -57,12 +74,9 @@ public class ReservationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Stolik nie istnieje."));
 
         List<Long> occupiedIds = getOccupiedTableIds(request.start(), request.end());
+
         if (occupiedIds.contains(table.getId())) {
             throw new ResourceAlreadyExistsException("Ten stolik jest już zajęty w wybranym terminie.");
-        }
-
-        if (request.start().isBefore(LocalDateTime.now())) {
-            throw new ReservationDateFromPastException("Wybrano datę rezerwacji z przeszłości.");
         }
 
         Waiter assignedWaiter = findAvailableWaiter(request.start(), request.end());
@@ -188,7 +202,11 @@ public class ReservationService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Nie znaleziono użytkownika"));
 
-        return reservationRepository.findAllByClientId(user.getId())
+        Client client = clientRepository.findById(user.getId()).orElseThrow(
+                () -> new AccessDeniedException("Zalogowany użytkownik nie jest klientem.")
+        );
+
+        return reservationRepository.findAllByClientId(client.getId())
                 .stream()
                 .sorted((r1, r2) -> r2.getId().compareTo(r1.getId()))
                 .map(this::mapToResponse)
@@ -213,6 +231,38 @@ public class ReservationService {
         }
     }
 
+    public List<ReservationResponse> findWaiterReservations(String email){
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("Uzytkownik z podanym email nie istnieje."));
+
+        Waiter waiter = waiterRepository.findById(user.getId()).orElseThrow(
+                () -> new AccessDeniedException("Zalogowany użytkownik nie jest kelnerem")
+        );
+
+        return reservationRepository.findAllByWaiterId(waiter.getId())
+                .stream()
+                .sorted((r1, r2) -> r2.getReservationPeriod().lower().compareTo(r1.getReservationPeriod().lower()))
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Transactional
+    public void updateReservationDishStatus(Long reservationId, Long reservationDishId, String email){
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
+                () -> new ResourceNotFoundException("Rezerwacja o podanym id nie istnieje")
+        );
+
+        if (reservation.getWaiter() == null || !reservation.getWaiter().getUser().getEmail().equals(email)){
+            throw new AccessDeniedException("Nie obsługujesz tej rezerwacji.");
+        }
+
+        ReservationDish reservationDish = reservation.getReservationDishes()
+                .stream()
+                .filter(dish -> Objects.equals(dish.getId(), reservationDishId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Danie o id " + reservationDishId + "nie jest daniem tej rezerwacji"));
+
+        reservationDish.setServed(!reservationDish.isServed());
+    }
 
     private ReservationResponse mapToResponse(Reservation r) {
         LocalDateTime start = r.getReservationPeriod().lower();

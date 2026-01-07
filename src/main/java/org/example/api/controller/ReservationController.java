@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.example.api.dto.ReservationRequest;
 import org.example.api.dto.ReservationResponse;
 import org.example.api.dto.WaiterResponse;
-import org.example.api.model.Reservation;
 import org.example.api.model.ReservationStatus;
 import org.example.api.service.ReservationService;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -82,6 +81,12 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.findClientReservations(authentication.getName()));
     }
 
+    @GetMapping("/waiter-my")
+    @PreAuthorize("hasRole('WAITER')")
+    public ResponseEntity<List<ReservationResponse>> getWaiterReservations(Authentication authentication){
+        return ResponseEntity.ok(reservationService.findWaiterReservations(authentication.getName()));
+    }
+
     @PatchMapping("/{id}/cancel")
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<Void> cancelReservation(@PathVariable Long id, Authentication authentication){
@@ -89,4 +94,10 @@ public class ReservationController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{id}/dish/{dishId}/status")
+    @PreAuthorize("hasRole('WAITER')")
+    public ResponseEntity<Void> updateDishStatus(@PathVariable Long id, @PathVariable Long dishId, Authentication authentication){
+        reservationService.updateReservationDishStatus(id, dishId, authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
 }
