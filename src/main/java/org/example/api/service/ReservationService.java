@@ -32,6 +32,7 @@ public class ReservationService {
     private final WorkShiftRepository workShiftRepository;
     private final DishRepository dishRepository;
     private final WaiterRepository waiterRepository;
+    private final NotificationService notificationService;
 
     private static final Random random = new Random();
     private static final LocalTime LAST_ALLOWED_START_TIME = LocalTime.of(19, 0);
@@ -107,6 +108,27 @@ public class ReservationService {
             }
             reservationRepository.save(savedReservation);
         }
+
+        notificationService.notifyUser(user,
+                "Rezerwacja przyjęta",
+                "Twoja rezerwacja na " + request.start().toLocalDate() + " godz " +request.start().toLocalTime() + " została przyjęta i oczekuje na potwierdzenie.");
+
+        notificationService.notifyAdmins(
+                "Nowa rezerwacja",
+                "Klient " + user.getFirstName() + " " + user.getLastName() + " złożył nową rezerwację.");
+
+        if (assignedWaiter != null) {
+            LocalDateTime date = savedReservation.getReservationPeriod().lower();
+
+            notificationService.notifyUser(assignedWaiter.getUser(),
+                    "Nowa rezerwacja do obsługi",
+                    "Zostałeś przypisany do rezerwacji: " + date.toLocalDate() +" " + date.toLocalTime());
+
+            notificationService.notifyUser(user,
+                    "Przypisano kelnera",
+                    "Do Twojej rezerwacji został przypisany kelner: " + assignedWaiter.getUser().getFirstName());
+        }
+
     }
 
     private Waiter findAvailableWaiter(LocalDateTime start, LocalDateTime end) {
@@ -126,12 +148,38 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
                 () -> new ResourceNotFoundException("Rezerwacja z id " + reservationId + " nie istnieje."));
 
+        ReservationStatus oldStatus = reservation.getStatus();
+
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new IllegalStateException("Nie można edytować anulowanej rezerwacji.");
         }
 
         reservation.setStatus(newStatus);
         reservationRepository.save(reservation);
+
+        User clientUser = reservation.getClient().getUser();
+        User waiterUser = (reservation.getWaiter() != null) ? reservation.getWaiter().getUser() : null;
+
+        if (newStatus == ReservationStatus.CONFIRMED && oldStatus == ReservationStatus.PENDING) {
+            notificationService.notifyUser(clientUser,
+                    "Rezerwacja potwierdzona!",
+                    "Twój stolik czeka. Zapraszamy " + reservation.getReservationPeriod().lower().toLocalDate() + " o godzinie "
+                        + reservation.getReservationPeriod().lower().toLocalTime() +".");
+        }
+
+        if (newStatus == ReservationStatus.CANCELLED) {
+            notificationService.notifyUser(clientUser,
+                    "Rezerwacja anulowana",
+                    "Twoja rezerwacja została anulowana przez obsługę.");
+
+            if (waiterUser != null) {
+                notificationService.notifyUser(waiterUser,
+                        "Anulowano rezerwację",
+                        "Rezerwacja, którą miałeś obsłużyć, została anulowana.");
+            }
+        }
+
+
     }
 
     public List<ReservationResponse> findAll() {
@@ -191,11 +239,29 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Rezerwacja nie istnieje."));
 
-        Waiter waiter = waiterRepository.findById(waiterId)
+        Waiter newWaiter = waiterRepository.findById(waiterId)
                 .orElseThrow(() -> new ResourceNotFoundException("Kelner nie istnieje."));
+        Waiter oldWaiter = reservation.getWaiter();
 
-        reservation.setWaiter(waiter);
+
+        reservation.setWaiter(newWaiter);
         reservationRepository.save(reservation);
+
+        notificationService.notifyUser(newWaiter.getUser(),
+                "Nowa rezerwacja do obsługi",
+                "Zostałeś przypisany do nowej rezerwacji: " + reservation.getReservationPeriod().lower().toLocalDate() + " " + reservation.getReservationPeriod().lower().toLocalTime());
+
+
+        if (oldWaiter != null && !oldWaiter.getId().equals(newWaiter.getId())) {
+            notificationService.notifyUser(oldWaiter.getUser(),
+                    "Zmiana w grafiku",
+                    "Zostałeś odsunięty od obsługi rezerwacji stolika nr " +reservation.getRestaurantTable().getTableNumber());
+        }
+
+        User clientUser = reservation.getClient().getUser();
+        notificationService.notifyUser(clientUser,
+                "Przypisano kelnera",
+                "Do Twojej rezerwacji został przypisany kelner: " + newWaiter.getUser().getFirstName());
     }
 
     public List<ReservationResponse> findClientReservations(String email) {
@@ -226,9 +292,22 @@ public class ReservationService {
         if (reservation.getStatus() == ReservationStatus.PENDING || reservation.getStatus() == ReservationStatus.CONFIRMED) {
             reservation.setStatus(ReservationStatus.CANCELLED);
             reservationRepository.save(reservation);
+
+            notificationService.notifyAdmins(
+                    "Klient anulował rezerwację",
+                    "Rezerwacja nr " + id + " (" + reservation.getClient().getUser().getEmail() + ") została odwołana przez klienta."
+            );
+
+            if (reservation.getWaiter() != null) {
+                notificationService.notifyUser(reservation.getWaiter().getUser(),
+                        "Klient odwołał wizytę",
+                        "Rezerwacja, którą miałeś obsługiwać została anulowana przez klienta."
+                );
+            }
         } else {
             throw new IllegalStateException("Nie można anulować rezerwacji o statusie: " + reservation.getStatus());
         }
+
     }
 
     public List<ReservationResponse> findWaiterReservations(String email){

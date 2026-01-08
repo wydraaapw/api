@@ -29,6 +29,10 @@ public class Notification {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean isRead = false;
+
     @Override
     public boolean equals(Object obj) {
         return obj instanceof Notification notification &&
