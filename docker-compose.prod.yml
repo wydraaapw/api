@@ -1,0 +1,52 @@
+services:
+  postgres_db:
+    image: postgres:17
+    container_name: inzynierka_database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_APP_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: Europe/Warsaw
+    volumes:
+      - inzynierka_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: inzynierka_backend
+    restart: unless-stopped
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/${POSTGRES_DB}
+        SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+        SPRING_DATASOURCE_PASSWORD: ${POSTGRES_APP_PASSWORD}
+        FRONTEND_APPLICATION_URL: ${FRONTEND_PUBLIC_URL}
+        MAIL_PASSWORD: ${MAIL_PASSWORD}
+        MAIL_USERNAME: ${MAIL_USERNAME}
+        APP_JWT_SECRET: ${APP_JWT_SECRET}
+        ADMIN_ACCOUNT_EMAIL: ${ADMIN_ACCOUNT_EMAIL}
+        ADMIN_ACCOUNT_PASSWORD: ${ADMIN_ACCOUNT_PASSWORD}
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ../ui
+      args:
+        VITE_API_URL: ${BACKEND_PUBLIC_URL}
+    container_name: inzynierka_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+
+volumes:
+  inzynierka_postgres_data:
+    name: inzynierka_inzynierka_postgres_data
